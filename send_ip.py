@@ -23,15 +23,15 @@ toaddr = 'qq859755014@126.com'
 
 # Googlemail login details
 username = 'qq859755014@126.com'
-password = '1password2'
+password = '1qazxsw2'
 
 output_date = subprocess.Popen(['date|cut -d " " -f 2-4'], stdout=subprocess.PIPE, shell=True).communicate()[0]
-output_ip = subprocess.Popen(['/opt/vc/bin/vcgencmd measure_temp | cut -b 6-11'], stdout=subprocess.PIPE, shell=True).communicate()[0]
-output_temp = subprocess.Popen(['curl ident.me'], stdout=subprocess.PIPE, shell=True).communicate()[0]
+output_temp = subprocess.Popen(['/opt/vc/bin/vcgencmd measure_temp | cut -b 6-11'], stdout=subprocess.PIPE, shell=True).communicate()[0]
+output_ip = subprocess.Popen(['curl -o - http://www.cpanel.net/showip.cgi'], stdout=subprocess.PIPE, shell=True).communicate()[0]
 
 send_date = "Boot time: %s" % (output_date)
-send_ip = "Temperature: %s" % (output_ip)
-send_temp = "External IP: %s" % (output_temp)
+send_temp = "Temperature: %s" % (output_temp)
+send_ip = "External IP: %s" % (output_ip)
 
 BODY = string.join((
 "From: %s" % fromaddr,
@@ -39,8 +39,8 @@ BODY = string.join((
 "Subject: Your RasPi just booted @ %s" % (output_date),
 "",
 send_date,
-send_ip,
 send_temp,
+send_ip,
 ), "\r\n")
 
 
