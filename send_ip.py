@@ -23,7 +23,7 @@ toaddr = 'qq859755014@126.com'
 
 # Googlemail login details
 username = 'qq859755014@126.com'
-password = '1qazxsw2'
+password = '1password2'
 
 output_date = subprocess.Popen(['date|cut -d " " -f 2-4'], stdout=subprocess.PIPE, shell=True).communicate()[0]
 output_ip = subprocess.Popen(['/opt/vc/bin/vcgencmd measure_temp | cut -b 6-11'], stdout=subprocess.PIPE, shell=True).communicate()[0]
