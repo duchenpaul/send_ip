@@ -28,10 +28,12 @@ password = '1qazxsw2'
 output_date = subprocess.Popen(['date|cut -d " " -f 2-4'], stdout=subprocess.PIPE, shell=True).communicate()[0]
 output_temp = subprocess.Popen(['/opt/vc/bin/vcgencmd measure_temp | cut -b 6-11'], stdout=subprocess.PIPE, shell=True).communicate()[0]
 output_ip = subprocess.Popen(['curl -o - http://www.cpanel.net/showip.cgi'], stdout=subprocess.PIPE, shell=True).communicate()[0]
+output_ESSID = subprocess.Popen(['iwconfig wlan0|grep ESSID|cut -d " " -f 9'], stdout=subprocess.PIPE, shell=True).communicate()[0]
 
 send_date = "Boot time: %s" % (output_date)
 send_temp = "Temperature: %s" % (output_temp)
 send_ip = "External IP: %s" % (output_ip)
+send_ESSID = output_ESSID
 
 BODY = string.join((
 "From: %s" % fromaddr,
@@ -41,6 +43,7 @@ BODY = string.join((
 send_date,
 send_temp,
 send_ip,
+send_ESSID,
 ), "\r\n")
 
 
