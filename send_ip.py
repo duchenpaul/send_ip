@@ -1,57 +1,51 @@
-#!/usr/bin/env python2.7
-import smtplib, string, subprocess
+import string, subprocess
 import time, urllib
 
-def check_network():
+def blink(y,n,t):
+  tmp = 0
+  while (tmp < t):
+    subprocess.Popen(['echo 1 > /sys/devices/platform/leds-gpio/leds/led0/brightness'], stdout=subprocess.PIPE, shell=True).communicate()[0]
+    # print("11111")
+    time.sleep(y)
+    subprocess.Popen(['echo 0 > /sys/devices/platform/leds-gpio/leds/led0/brightness'], stdout=subprocess.PIPE, shell=True).communicate()[0]
+    # print("00000")
+    time.sleep(n)
+    tmp += y+n
+
+  subprocess.Popen(['echo 0 > /sys/devices/platform/leds-gpio/leds/led0/brightness'], stdout=subprocess.PIPE, shell=True).communicate()[0]
+  # print("------")
+
+def pulse_blink(t):
+  tmp = 0
+  print "t= %d" %(t)
+  while (tmp < t):
+    print(tmp)
+    blink(.1,.1,.4)
+    time.sleep(.5)
+    tmp += 1
+    pass
+  pass
+
+def check_network_with_blink():
     while True:
         try:
+            if flag == 0: #send a mail when internet reconnects
+              subprocess.Popen(['sudo python ./send_ip.py'], stdout=subprocess.PIPE, shell=True).communicate()[0] 
+              flag = 1
+              pass
+
             result=urllib.urlopen('http://baidu.com').read()
             print result
             print "Network is Ready!"
+            blink(.5,.5,5)
             break
         except Exception , e:
            print e
            print "Network is not ready,Sleep 5s...."
-           time.sleep(5)
+           flag = 0
+           pulse_blink(5)
     return True
 
-check_network()
-
-# Settings
-fromaddr = 'qq859755014@126.com'
-toaddr = 'qq859755014@126.com'
-
-# Googlemail login details
-username = 'qq859755014@126.com'
-password = '1qazxsw2'
-
-output_date = subprocess.Popen(['date|cut -d " " -f 2-4'], stdout=subprocess.PIPE, shell=True).communicate()[0]
-output_temp = subprocess.Popen(['/opt/vc/bin/vcgencmd measure_temp | cut -b 6-11'], stdout=subprocess.PIPE, shell=True).communicate()[0]
-output_ip = subprocess.Popen(['curl -o - http://www.cpanel.net/showip.cgi'], stdout=subprocess.PIPE, shell=True).communicate()[0]
-output_ESSID = subprocess.Popen(['iwconfig wlan0|grep ESSID|cut -d " " -f 9'], stdout=subprocess.PIPE, shell=True).communicate()[0]
-
-send_date = "Boot time: %s" % (output_date)
-send_temp = "Temperature: %s" % (output_temp)
-send_ip = "External IP: %s" % (output_ip)
-send_ESSID = output_ESSID
-
-BODY = string.join((
-"From: %s" % fromaddr,
-"To: %s" % toaddr,
-"Subject: Your RasPi just booted @ %s" % (output_date),
-"",
-send_date,
-send_temp,
-send_ip,
-send_ESSID,
-), "\r\n")
-
-
-
-
-# send the email
-server = smtplib.SMTP('smtp.126.com')
-server.starttls()
-server.login(username,password)
-server.sendmail(fromaddr, toaddr, BODY)
-server.quit()
+while True:
+  check_network_with_blink()
+  pass
