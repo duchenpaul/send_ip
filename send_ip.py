@@ -25,7 +25,7 @@ toaddr = 'qq859755014@126.com'
 username = 'qq859755014@126.com'
 password = '1qazxsw2'
 
-output_date = subprocess.Popen(['date|cut -d " " -f 2-5'], stdout=subprocess.PIPE, shell=True).communicate()[0]
+output_date = subprocess.Popen(['date |cut -d " " -f 2-10| sed 's/ CST.*//g''], stdout=subprocess.PIPE, shell=True).communicate()[0]
 output_temp = subprocess.Popen(['/opt/vc/bin/vcgencmd measure_temp | cut -b 6-11'], stdout=subprocess.PIPE, shell=True).communicate()[0]    
 output_ip = subprocess.Popen(['curl -o - http://www.cpanel.net/showip.cgi'], stdout=subprocess.PIPE, shell=True).communicate()[0]
 output_ESSID = subprocess.Popen(['iwconfig wlan0|grep ESSID|cut -d " " -f 9'], stdout=subprocess.PIPE, shell=True).communicate()[0]
