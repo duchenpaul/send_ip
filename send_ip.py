@@ -36,6 +36,7 @@ send_temp = "Temperature: %s" % (output_temp)
 send_ip = "External IP: %s" % (output_ip)
 send_ESSID = "ESSID: %s" % (output_ESSID)
 send_inner_ip = "LAN IP: %s" % (output_inner_ip)
+yeelink = "For more infomation, visit: http://www.yeelink.net/devices/15028"
 
 BODY = string.join((
 "From: %s" % fromaddr,
@@ -47,6 +48,7 @@ send_temp,
 send_ip,
 send_inner_ip,
 send_ESSID,
+yeelink
 ), "\r\n")
 
 
