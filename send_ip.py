@@ -1,42 +1,62 @@
-#注意这句执行的是/mnt/tmp/下的文件，而不是home/pi/
-sudo python /mnt/tmp/temp.py
-#curl --request POST --data-binary @"/mnt/tmp/temp.txt" --header "U-ApiKey:86493543ff87c604bc56fac6a89aee56" --verbose http://api.yeelink.net/v1.0/device/15028/sensor/25761/datapoints
+#!/usr/bin/env python2.7
+import smtplib, string, subprocess
+import time, urllib
 
-get_cpu_info() 
-{ 
-  cat /proc/stat|grep '^cpu[0-9]'|awk '{used+=$2+$3+$4;unused+=$5+$6+$7+$8} END{print used,unused}' 
-} 
- 
-watch_cpu() 
-{ 
-  time_point_1=`get_cpu_info` 
-  sleep 3
-  time_point_2=`get_cpu_info` 
-  cpu_usage=`echo $time_point_1 $time_point_2|awk '{used=$3-$1;total=$3+$4-$1-$2;print used*100/total}'` 
-}
+def check_network():
+    while True:
+        try:
+            result=urllib.urlopen('http://baidu.com').read()
+            print result
+            print "Network is Ready!"
+            break
+        except Exception , e:
+           print e
+           print "Network is not ready,Sleep 5s...."
+           time.sleep(5)
+    return True
 
-post_to_wsncloud() #Usage: post_to_wsncloud sensor_id value
-{
-	sensor_id=$1
-	value=$2
-	curl -v --request POST "http://www.wsncloud.com/api/data/v1/numerical/insert?timestamp=&ak=52596388390a355aa1e90d4076d26d2d&id=$sensor_id&value=$value"
-}
+check_network()
 
-CURTIME=`date +"%Y-%m-%d %H:%M:%S"`
-watch_cpu
-#LOADAVG=`cat /proc/loadavg | /usr/bin/awk '{print 100*$1}'`
-LOADAVG=$cpu_usage
-echo '{"timestamp":"'$CURTIME'", "value":'$LOADAVG'}' >/tmp/datafile
-/usr/bin/wget -q --post-file=/tmp/datafile --header="U-ApiKey:86493543ff87c604bc56fac6a89aee56" -O /tmp/yeelink http://api.yeelink.net/v1.0/device/15028/sensor/32478/datapoints
+# Settings
+fromaddr = 'qq859755014@126.com'
+toaddr = 'qq859755014@126.com'
+
+# Googlemail login details
+username = 'qq859755014@126.com'
+password = '1qazxsw2'
+
+output_date = subprocess.Popen(['date |cut -d " " -f 2-10| sed \'s/ CST.*//g\''], stdout=subprocess.PIPE, shell=True).communicate()[0]
+output_temp = subprocess.Popen(['/opt/vc/bin/vcgencmd measure_temp | cut -b 6-11'], stdout=subprocess.PIPE, shell=True).communicate()[0]    
+output_ip = subprocess.Popen(['curl -o - http://cpanel.com/showip.shtml'], stdout=subprocess.PIPE, shell=True).communicate()[0]
+output_ESSID = subprocess.Popen(['iwconfig wlan0|grep ESSID|cut -d " " -f 9|sed \'s/ESSID:"//g\'|sed \'s/"//g\''], stdout=subprocess.PIPE, shell=True).communicate()[0]
+output_inner_ip = subprocess.Popen(['echo $(hostname -I) || true'], stdout=subprocess.PIPE, shell=True).communicate()[0]
+    
+send_date = "Boot time: %s" % (output_date)
+send_temp = "Temperature: %s" % (output_temp)
+send_ip = "External IP: %s" % (output_ip)
+send_ESSID = "ESSID: %s" % (output_ESSID)
+send_inner_ip = "LAN IP: %s" % (output_inner_ip)
+yeelink = "For more information, visit: \nhttp://www.yeelink.net/devices/15028\nhttp://www.lewei50.com/u/g/8703\n"
+
+BODY = string.join((
+"From: %s" % fromaddr,
+"To: %s" % toaddr,
+"Subject: Your RasPi just booted @ %s" % (output_date),
+"",
+send_date,
+send_temp,
+send_ip,
+send_inner_ip,
+send_ESSID,
+yeelink
+), "\r\n")
 
 
-temp=`/opt/vc/bin/vcgencmd measure_temp | cut -c 6-7`
-curl -v --request POST http://www.lewei50.com/api/V1/gateway/UpdateSensors/01 --data "[{'Name':'S1','Value':'$temp'}]" --header "userkey:2325ed9fb0c94947b18d1a7245a50be4"
-#post 到乐联网
 
-curl -v --request POST http://www.lewei50.com/api/V1/gateway/UpdateSensors/01 --data "[{'Name':'S2','Value':'$LOADAVG'}]" --header "userkey:2325ed9fb0c94947b18d1a7245a50be4"
 
-sensor_id_cpu_temp=56514e73e4b0932584ded5e5
-post_to_wsncloud $sensor_id_cpu_temp $temp
-sensor_id_cpu_Load=56541041e4b00415c4381c64
-post_to_wsncloud $sensor_id_cpu_Load $LOADAVG
+# send the email
+server = smtplib.SMTP('smtp.126.com')
+server.starttls()
+server.login(username,password)
+server.sendmail(fromaddr, toaddr, BODY)
+server.quit()
